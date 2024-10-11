@@ -309,6 +309,7 @@ class NeuronavigationApi(metaclass=Singleton):
     def __set_callbacks(self, connection):
         connection.set_callback__open_orientation_dialog(self.open_orientation_dialog)
         connection.set_callback__stimulation_pulse_received(self.stimulation_pulse_received)
+        connection.set_callback__pipeline_sensory_stimulus(self.pipeline_sensory_stimulus)
         # connection.set_callback__update_robot_status(self.update_robot_status)
         # connection.set_callback__robot_connection_status(self.robot_connection_status)
         # connection.set_callback__robot_pose_collected(self.robot_pose_collected)
@@ -337,6 +338,40 @@ class NeuronavigationApi(metaclass=Singleton):
     def stimulation_pulse_received(self):
         # TODO: If marker should not be created always when receiving a stimulation pulse, add the logic here.
         wx.CallAfter(Publisher.sendMessage, "Create marker", marker_type=MarkerType.COIL_POSE)
+
+    # class States(Enum):
+    #     WELCOME = 0
+    #     BREAK = 1
+    #     TRIAL_INTRO = 2
+    #     TRIAL = 3
+    #     TRIAL_RESULT = 4
+    #     ITI = 5
+    #     QUESTION = 6
+    #     RESTING_STATE = 7
+    #     FINISH = 8
+    #     CLASSIFY = 9
+    #     TRAIN_CLASSIFIER = 10
+    #     CONTROL = 11
+    # class Trials(Enum):
+    #     RIGHT = 0
+    #     LEFT = 1
+    #     NOTHING = 2
+
+    def pipeline_sensory_stimulus(self, time, state, parameter, duration):
+        if state != 3:
+            return
+        from invesalius.navigation.navigation import NavigationHub
+        marker_list = NavigationHub().markers.list
+        for marker in marker_list:
+            if parameter == 0:
+                if marker.label == "LEFT_ROBOT_TARGET":
+                    NavigationHub().markers.SetTarget(marker.marker_id)
+                    wx.CallAfter(Publisher.sendMessage, "Press robot button", pressed=True)
+                    return
+            elif parameter == 1:
+                if marker.label == "RIGHT_ROBOT_TARGET":
+                    NavigationHub().markers.SetTarget(marker.marker_id)
+                    wx.CallAfter(Publisher.sendMessage, "Press robot button", pressed=True)
 
     def set_vector_field(self, vector_field):
         wx.CallAfter(Publisher.sendMessage, "Set vector field", vector_field=vector_field)
