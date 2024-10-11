@@ -2087,17 +2087,19 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         # at most 1080 pixels (a commonly used height in laptops). Otherwise, the height grows linearly with
         # the screen height.
         marker_list_height = max(120, int(screen_height / 4))
-        marker_list_ctrl = gizmos.TreeListCtrl(self, -1,
-                                        style=wx.TR_DEFAULT_STYLE
-                                        | wx.TR_HIDE_ROOT
-                                        | wx.TR_ROW_LINES
-                                         | wx.TR_COLUMN_LINES
-                                        | wx.TR_FULL_ROW_HIGHLIGHT
-                                        # | wx.TR_MULTIPLE
-                                        | wx.TR_HIDE_ROOT,
-                                        agwStyle=gizmos.TR_MULTIPLE,
-                                        size=wx.Size(0, marker_list_height))
-
+        marker_list_ctrl = gizmos.TreeListCtrl(
+            self,
+            -1,
+            style=wx.TR_DEFAULT_STYLE
+            | wx.TR_HIDE_ROOT
+            | wx.TR_ROW_LINES
+            | wx.TR_COLUMN_LINES
+            | wx.TR_FULL_ROW_HIGHLIGHT
+            # | wx.TR_MULTIPLE
+            | wx.TR_HIDE_ROOT,
+            agwStyle=gizmos.TR_MULTIPLE,
+            size=wx.Size(0, marker_list_height),
+        )
 
         marker_list_ctrl.AddColumn("#")
         marker_list_ctrl.SetColumnWidth(const.ID_COLUMN, 32)
@@ -2135,7 +2137,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
 
         marker_list_ctrl.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.OnMouseRightDown)
         marker_list_ctrl.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnMarkerFocused)
-        #marker_list_ctrl.Bind(wx.EVT_TREE_ITEM_DESELECTED, self.OnMarkerUnfocused)
+        # marker_list_ctrl.Bind(wx.EVT_TREE_ITEM_DESELECTED, self.OnMarkerUnfocused)
         marker_list_ctrl.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.SetCameraToFocusOnMarker)
 
         marker_list_ctrl.SetMainColumn(0)
@@ -2280,7 +2282,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
                 print("Invalid itemDataMap key:", key)
 
         num_items = self.marker_list_ctrl.GetCount()
-        for n in range(1,num_items):
+        for n in range(1, num_items):
             m_id = self.__get_marker_id(n)
             reduction_in_m_id = 0
             for d_id in deleted_ids:
@@ -2295,7 +2297,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         idx = self.search_in_tree(marker.marker_id)
         item = self.marker_list_ctrl.FindItem(self.root, str(idx))
         self.marker_list_ctrl.SetItemBackgroundColour(item, "PURPLE")
-        self.marker_list_ctrl.SetItemText(item,  _("Yes"), const.POINT_OF_INTEREST_TARGET_COLUMN)
+        self.marker_list_ctrl.SetItemText(item, _("Yes"), const.POINT_OF_INTEREST_TARGET_COLUMN)
         uuid = marker.marker_uuid
 
         # Set the point of interest in itemDataMap
@@ -2308,7 +2310,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         idx = self.search_in_tree(marker.marker_id)
         item = self.marker_list_ctrl.FindItem(self.root, str(idx))
         self.marker_list_ctrl.SetItemBackgroundColour(item, "white")
-        self.marker_list_ctrl.SetItemText(item,  _(""), const.POINT_OF_INTEREST_TARGET_COLUMN)
+        self.marker_list_ctrl.SetItemText(item, _(""), const.POINT_OF_INTEREST_TARGET_COLUMN)
         uuid = marker.marker_uuid
 
         # Unset the point of interest in itemDataMap
@@ -2562,7 +2564,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         # Selection of more than 1 marker not supported by MarkerTransformator
         if idx == -1 or idx == "":
             return
-        marker_id = self.__get_marker_id(int(idx.GetText()))-1
+        marker_id = self.__get_marker_id(int(idx.GetText())) - 1
         marker = self.markers.list[marker_id]
 
         # XXX: There seems to be a bug in WxPython when selecting multiple items on the list using,
@@ -2593,7 +2595,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
 
     def SetCameraToFocusOnMarker(self, evt):
         idx = int(self.marker_list_ctrl.GetMainWindow().GetFocusedItem().GetText())
-        marker = self.markers.list[idx-1]
+        marker = self.markers.list[idx - 1]
         Publisher.sendMessage("Set camera to focus on marker", marker=marker)
 
     def OnCreateCoilTargetFromLandmark(self, evt):
@@ -2660,7 +2662,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         idx = self.__find_marker_index(marker.marker_id)
         item = self.marker_list_ctrl.FindItem(self.root, str(idx))
         self.marker_list_ctrl.SetItemBackgroundColour(item, "RED")
-        self.marker_list_ctrl.SetItemText(item,  _("Yes"), const.TARGET_COLUMN)
+        self.marker_list_ctrl.SetItemText(item, _("Yes"), const.TARGET_COLUMN)
 
         target_uuid = marker.marker_uuid
 
@@ -2866,7 +2868,9 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         idx = int(self.marker_list_ctrl.GetMainWindow().GetFocusedItem().GetText())
         marker = self.__get_marker(idx)
 
-        new_mep = dlg.ShowEnterMEPValue(self.marker_list_ctrl.GetMainWindow().GetItemText(idx, const.MEP_COLUMN))
+        new_mep = dlg.ShowEnterMEPValue(
+            self.marker_list_ctrl.GetMainWindow().GetItemText(idx, const.MEP_COLUMN)
+        )
         self.markers.ChangeMEP(marker, new_mep)
 
     def _UnsetTarget(self, marker):
@@ -2878,7 +2882,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         # Update the marker list control.
         item = self.marker_list_ctrl.FindItem(self.root, str(idx))
         self.marker_list_ctrl.SetItemBackgroundColour(item, "white")
-        self.marker_list_ctrl.SetItemText(item,  _(""), const.TARGET_COLUMN)
+        self.marker_list_ctrl.SetItemText(item, _(""), const.TARGET_COLUMN)
 
         # Unset the target in itemDataMap
         target_uuid = marker.marker_uuid
@@ -2894,7 +2898,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         num_items = self.marker_list_ctrl.GetCount()
         for idx in range(num_items):
             item_marker_id = self.__get_marker_id(idx)
-            list_item = self.marker_list_ctrl.FindItem(self.root, str(item_marker_id+1))
+            list_item = self.marker_list_ctrl.FindItem(self.root, str(item_marker_id + 1))
             if int(list_item.GetText()) == marker_id:
                 return idx
         return None
@@ -2906,7 +2910,7 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
         list_item = self.marker_list_ctrl.FindItem(self.root, str(idx))
         if list_item.GetText() == "":
             return 0
-        return int(list_item.GetText())-1
+        return int(list_item.GetText()) - 1
 
     def __get_marker(self, idx):
         """
@@ -3361,12 +3365,16 @@ class MarkersPanel(wx.Panel, ColumnSorterMixin):
             list_entry.append(round(marker.y, 1))
             list_entry.append(round(marker.z, 1))
 
-        item = self.marker_list_ctrl.AppendItem(parentId=self.root, text=str(list_entry[const.ID_COLUMN]))
+        item = self.marker_list_ctrl.AppendItem(
+            parentId=self.root, text=str(list_entry[const.ID_COLUMN])
+        )
         if marker.marker_type == MarkerType.BRAIN_TARGET:
-            item = self.marker_list_ctrl.AppendItem(parentId=item, text=str(list_entry[const.ID_COLUMN]))
+            item = self.marker_list_ctrl.AppendItem(
+                parentId=item, text=str(list_entry[const.ID_COLUMN])
+            )
 
         for count, i in enumerate(list_entry[1:]):
-            self.marker_list_ctrl.GetMainWindow().SetItemText(item, str(i), count+1)
+            self.marker_list_ctrl.GetMainWindow().SetItemText(item, str(i), count + 1)
             # self.marker_list_ctrl.SetItemData(num_items, key)
         # else:
         #     self.marker_list_ctrl.AppendItem(root, list_entry)

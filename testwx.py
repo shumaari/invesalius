@@ -1,5 +1,7 @@
-import wx
 import csv
+
+import wx
+
 
 class MyFrame(wx.Frame):
     def __init__(self):
@@ -57,14 +59,18 @@ class MyFrame(wx.Frame):
         self.Layout()  # Refresh layout
 
     def on_export(self, event):
-        with wx.FileDialog(self, "Save CSV file", wildcard="CSV files (*.csv)|*.csv",
-                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as file_dialog:
+        with wx.FileDialog(
+            self,
+            "Save CSV file",
+            wildcard="CSV files (*.csv)|*.csv",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        ) as file_dialog:
             if file_dialog.ShowModal() == wx.ID_OK:
                 path = file_dialog.GetPath()
                 self.export_to_csv(path)
 
     def export_to_csv(self, path):
-        with open(path, mode='w', newline='', encoding='utf-8') as file:
+        with open(path, mode="w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
 
             # Write header
@@ -80,6 +86,7 @@ class MyFrame(wx.Frame):
             writer.writerow([main_item_2, ""])  # No sub items for Item 2
 
         wx.MessageBox("Exported successfully!", "Info", wx.OK | wx.ICON_INFORMATION)
+
 
 if __name__ == "__main__":
     app = wx.App(False)

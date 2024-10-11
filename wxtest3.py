@@ -1,12 +1,13 @@
 import wx
 from wx.lib.agw.hypertreelist import HyperTreeList
 
+
 class MyFrame(wx.Frame):
     def __init__(self):
         super().__init__(None, title="HyperTreeList Example", size=(600, 400))
 
         # Create a HyperTreeList
-        self.tree = HyperTreeList(self, style= wx.TR_HIDE_ROOT)
+        self.tree = HyperTreeList(self, style=wx.TR_HIDE_ROOT)
 
         # Add columns
         self.tree.AddColumn("Items")
@@ -29,6 +30,7 @@ class MyFrame(wx.Frame):
 
         # Show the frame
         self.Show()
+
 
 app = wx.App(False)
 frame = MyFrame()

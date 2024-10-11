@@ -1,9 +1,12 @@
 import wx
 import wx.dataview as dv
 
+
 class MainFrame(wx.Frame):
     def __init__(self):
-        super().__init__(None, title="wxPython TreeListCtrl with Columns and Subitems", size=(500, 400))
+        super().__init__(
+            None, title="wxPython TreeListCtrl with Columns and Subitems", size=(500, 400)
+        )
         panel = wx.Panel(self)
 
         # Create TreeListCtrl
@@ -36,6 +39,7 @@ class MainFrame(wx.Frame):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(tree_list_ctrl, 1, wx.EXPAND)
         panel.SetSizer(sizer)
+
 
 if __name__ == "__main__":
     app = wx.App(False)

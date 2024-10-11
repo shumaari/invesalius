@@ -361,6 +361,7 @@ class NeuronavigationApi(metaclass=Singleton):
         if state != 3:
             return
         from invesalius.navigation.navigation import NavigationHub
+
         marker_list = NavigationHub().markers.list
         for marker in marker_list:
             if parameter == 0:
