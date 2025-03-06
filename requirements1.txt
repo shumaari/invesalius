@@ -1,0 +1,25 @@
+# Scientific
+numpy
+scipy
+matplotlib
+
+# Image Processing
+Pillow
+imageio
+nibabel
+scikit-image
+python-gdcm
+vtk
+
+# Machine Learning
+torch
+plaidml-keras
+
+# Utilities
+Cython
+Pypubsub
+h5py
+psutil
+pyserial
+wxPython
+pyacvd
