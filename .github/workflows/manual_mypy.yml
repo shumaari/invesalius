@@ -19,7 +19,7 @@ jobs:
           python-version: 3.9
       - name: Install requirements
         run: |
-          pip install -r requirements.txt
+          pip install -r requirements1.txt
       - name: Install invesalius
         run: |
           pip install -e .
