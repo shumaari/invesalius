@@ -3,11 +3,11 @@ permissions: read-all
 
 on:
   workflow_dispatch:
-    paths:
-      - '.github/workflows/mypy.yml'
-      - 'pyproject.toml'
-      - '**.py'
-      - '**.pyi'
+    #paths:
+    #  - '.github/workflows/mypy.yml'
+    #  - 'pyproject.toml'
+    #  - '**.py'
+    #  - '**.pyi'
 
 jobs:
   mypy:
@@ -17,12 +17,12 @@ jobs:
       - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
         with:
           python-version: 3.9
-      - name: Install requirements
-        run: |
-          pip install -r requirements1.txt
-      - name: Install invesalius
-        run: |
-          pip install -e .
+      #- name: Install requirements
+      #  run: |
+      #    pip install -r requirements1.txt
+      #- name: Install invesalius
+      #  run: |
+      #    pip install -e .
       - name: Install mypy
         run: pip install mypy==1.9.0
       - name: Run mypy
