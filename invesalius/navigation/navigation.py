@@ -20,9 +20,11 @@
 import queue
 import threading
 from time import sleep
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import wx
+from numpy.typing import NDArray
 
 import invesalius.constants as const
 import invesalius.data.bases as db
@@ -55,7 +57,7 @@ class NavigationHub(metaclass=Singleton):
     Class to initialize and store references to navigation components.
     """
 
-    def __init__(self, window=None):
+    def __init__(self, window: Union[None, int] = None) -> None:
         self.tracker = Tracker()
         self.image = Image()
         self.icp = IterativeClosestPoint()
@@ -83,7 +85,7 @@ class QueueCustom(queue.Queue):
     possibly limiting the queue size is good.
     """
 
-    def clear(self):
+    def clear(self) -> None:
         """
         Clears all items from the queue.
         """
@@ -100,7 +102,14 @@ class QueueCustom(queue.Queue):
 
 
 class UpdateNavigationScene(threading.Thread):
-    def __init__(self, vis_queues, vis_components, event, sle, neuronavigation_api):
+    def __init__(
+        self,
+        vis_queues: List[QueueCustom],
+        vis_components: List[bool],
+        event: threading.Event,
+        sle: float,
+        neuronavigation_api: NeuronavigationApi,
+    ) -> None:
         """Class (threading) to update the navigation scene with all graphical elements.
 
         Sleep function in run method is used to avoid blocking GUI and more fluent, real-time navigation
@@ -137,7 +146,7 @@ class UpdateNavigationScene(threading.Thread):
         self.neuronavigation_api = neuronavigation_api
         self.navigation = Navigation()
 
-    def run(self):
+    def run(self) -> None:
         while not self.event.is_set():
             got_coords = False
             try:
@@ -259,7 +268,9 @@ class UpdateNavigationScene(threading.Thread):
 
 
 class Navigation(metaclass=Singleton):
-    def __init__(self, pedal_connector, neuronavigation_api):
+    def __init__(
+        self, pedal_connector: PedalConnector, neuronavigation_api: NeuronavigationApi
+    ) -> None:
         self.pedal_connector = pedal_connector
         self.neuronavigation_api = neuronavigation_api
 
@@ -267,7 +278,7 @@ class Navigation(metaclass=Singleton):
         self.n_coils = 1
         self.coil_registrations = {}
         self.track_coil = False
-        self.main_coil = None  # Which coil to track with pointer
+        self.main_coil: Union[None, str] = None  # Which coil to track with pointer
         self.m_change = None
         self.r_stylus = None
         self.obj_datas = None  # This is accessed by the robot, gets value at StartNavigation
@@ -324,14 +335,14 @@ class Navigation(metaclass=Singleton):
 
         self.__bind_events()
 
-    def __bind_events(self):
+    def __bind_events(self) -> None:
         Publisher.subscribe(self.CoilAtTarget, "Coil at target")
         Publisher.subscribe(self.SetNoOfCoils, "Reset coil selection")
         Publisher.subscribe(self.SelectCoil, "Select coil")
         Publisher.subscribe(self.UpdateSerialPort, "Update serial port")
         Publisher.subscribe(self.TrackObject, "Track object")
 
-    def SaveConfig(self, key=None, value=None):
+    def SaveConfig(self, key: str = None, value: object = None) -> None:
         """
         Save either the whole state, or a specific key-value pair into navigation configuration
         """
@@ -353,7 +364,7 @@ class Navigation(metaclass=Singleton):
             state[key] = value
             session.SetConfig("navigation", state)
 
-    def LoadConfig(self):
+    def LoadConfig(self) -> None:
         session = ses.Session()
         state = session.GetConfig("navigation")
 
@@ -383,10 +394,12 @@ class Navigation(metaclass=Singleton):
             if "r_stylus" in state:
                 self.r_stylus = np.array(state["r_stylus"])
 
-    def CoilSelectionDone(self):
+    def CoilSelectionDone(self) -> bool:
         return len(self.coil_registrations) == self.n_coils
 
-    def SelectCoil(self, coil_name, coil_registration):
+    def SelectCoil(
+        self, coil_name: Union[None, str], coil_registration: Union[None, Dict[str, object]]
+    ) -> None:
         if coil_registration is not None:  # Add the coil to selection
             self.coil_registrations[coil_name] = coil_registration
             if self.main_coil is None:
@@ -399,26 +412,26 @@ class Navigation(metaclass=Singleton):
 
         self.SaveConfig()
 
-    def CoilAtTarget(self, state):
+    def CoilAtTarget(self, state: Dict[str, object]) -> None:
         self.coil_at_target = state
 
-    def UpdateNavSleep(self, sleep):
+    def UpdateNavSleep(self, sleep) -> None:
         self.sleep_nav = sleep
         # self.serial_port_connection.sleep_nav = sleep
 
-    def UpdateSerialPort(self, serial_port_in_use, com_port=None, baud_rate=None):
+    def UpdateSerialPort(self, serial_port_in_use: bool, com_port=None, baud_rate=None) -> None:
         self.serial_port_in_use = serial_port_in_use
         self.com_port = com_port
         self.baud_rate = baud_rate
 
-    def TrackObject(self, enabled=False):
+    def TrackObject(self, enabled: bool = False) -> None:
         self.track_coil = enabled
         self.SaveConfig()
 
-    def SetLockToTarget(self, value):
+    def SetLockToTarget(self, value: bool) -> None:
         self.lock_to_target = value
 
-    def SetNoOfCoils(self, n_coils):
+    def SetNoOfCoils(self, n_coils: int) -> None:
         self.n_coils = n_coils
         self.SaveConfig("n_coils", n_coils)
 
@@ -427,7 +440,7 @@ class Navigation(metaclass=Singleton):
         self.main_coil = None
         self.SaveConfig()
 
-    def SetMainCoil(self, main_coil):
+    def SetMainCoil(self, main_coil: str) -> None:
         self.main_coil = main_coil
         self.SaveConfig("main_coil", main_coil)
 
@@ -435,13 +448,13 @@ class Navigation(metaclass=Singleton):
         polydata = pu.LoadPolydata(self.coil_registrations[main_coil]["path"])
         self.neuronavigation_api.update_coil_mesh(polydata)
 
-    def SetReferenceMode(self, value):
+    def SetReferenceMode(self, value: int) -> None:
         self.ref_mode_id = value
 
-    def GetReferenceMode(self):
+    def GetReferenceMode(self) -> int:
         return self.ref_mode_id
 
-    def UpdateFiducialRegistrationError(self, tracker, image):
+    def UpdateFiducialRegistrationError(self, tracker: Tracker, image: Image) -> None:
         tracker_fiducials, tracker_fiducials_raw = tracker.GetTrackerFiducials()
         image_fiducials = image.GetImageFiducials()
 
@@ -451,11 +464,11 @@ class Navigation(metaclass=Singleton):
             tracker_fiducials_raw, self.all_fiducials, self.ref_mode_id, self.m_change
         )
 
-    def GetFiducialRegistrationError(self, icp):
+    def GetFiducialRegistrationError(self, icp: IterativeClosestPoint) -> Tuple[float, bool]:
         fre = icp.icp_fre if icp.use_icp else self.fre
         return fre, fre <= const.FIDUCIAL_REGISTRATION_ERROR_THRESHOLD
 
-    def PedalStateChanged(self, state):
+    def PedalStateChanged(self, state: Dict[str, object]) -> None:
         if not self.serial_port_in_use:
             return
 
@@ -466,7 +479,7 @@ class Navigation(metaclass=Singleton):
         if state and permission_to_stimulate:
             self.serial_port_connection.SendPulse()
 
-    def EstimateTrackerToInVTransformationMatrix(self, tracker, image):
+    def EstimateTrackerToInVTransformationMatrix(self, tracker: Tracker, image: Image) -> None:
         tracker_fiducials, tracker_fiducials_raw = tracker.GetTrackerFiducials()
         image_fiducials = image.GetImageFiducials()
 
@@ -476,7 +489,7 @@ class Navigation(metaclass=Singleton):
             self.all_fiducials[3:, :].T, self.all_fiducials[:3, :].T, shear=False, scale=False
         )
 
-    def OnRecordStylusOrientation(self, coord_raw):
+    def OnRecordStylusOrientation(self, coord_raw: NDArray) -> bool:
         if self.m_change is not None:
             m_probe = dcr.compute_marker_transformation(coord_raw, 0)
 
@@ -506,7 +519,7 @@ class Navigation(metaclass=Singleton):
         else:
             return False
 
-    def StartNavigation(self, tracker, icp):
+    def StartNavigation(self, tracker: Tracker, icp: IterativeClosestPoint) -> None:
         # initialize jobs list
         jobs_list = []
 
@@ -684,7 +697,7 @@ class Navigation(metaclass=Singleton):
 
             self.pedal_connector.add_callback("navigation", self.PedalStateChanged)
 
-    def StopNavigation(self):
+    def StopNavigation(self) -> None:
         self.event.set()
 
         self.pedal_connector.remove_callback("navigation")
