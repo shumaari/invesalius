@@ -24,9 +24,10 @@ import shutil
 import sys
 import tarfile
 import tempfile
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 
 import numpy as np
+from numpy.typing import NDArray
 from vtkmodules.vtkCommonCore import vtkFileOutputWindow, vtkOutputWindow
 
 import invesalius.constants as const
@@ -40,6 +41,8 @@ from invesalius.utils import Singleton, TwoWaysDictionary, debug, decode
 
 if TYPE_CHECKING:
     from invesalius.data.mask import Mask
+    from invesalius.data.measures import Measurement
+    from invesalius.data.surface import Surface
 
 if sys.platform == "win32":
     try:
@@ -55,41 +58,41 @@ else:
 # Only one project will be initialized per time. Therefore, we use
 # Singleton design pattern for implementing it
 class Project(metaclass=Singleton):
-    def __init__(self):
+    def __init__(self) -> None:
         # Patient/ acquistion information
-        self.name = ""
-        self.modality = ""
-        self.original_orientation = ""
-        self.window = ""
-        self.level = ""
-        self.affine = ""
+        self.name: str = ""
+        self.modality: str = ""
+        self.original_orientation: str = ""
+        self.window: str = ""
+        self.level: str = ""
+        self.affine: str = ""
 
         # Masks (vtkImageData)
-        self.mask_dict = TwoWaysDictionary()
+        self.mask_dict: TwoWaysDictionary[int, "Masks"] = TwoWaysDictionary()
 
         # Surfaces are (vtkPolyData)
-        self.surface_dict = {}
-        self.last_surface_index = -1
+        self.surface_dict: Dict[int, "Surface"] = {}
+        self.last_surface_index: int = -1
 
         # Measurements
-        self.measurement_dict = {}
+        self.measurement_dict: Dict[int, "Measurement"] = {}
 
         # TODO: Future ++
-        self.annotation_dict = {}
+        self.annotation_dict: Dict[int, Any] = {}
 
-        self.compress = False
+        self.compress: bool = False
 
-        self.invesalius_version = const.INVESALIUS_VERSION
+        self.invesalius_version: str = const.INVESALIUS_VERSION
 
-        self.presets = Presets()
+        self.presets: Presets = Presets()
 
-        self.threshold_modes = self.presets.thresh_ct
-        self.threshold_range = ""
+        self.threshold_modes: TwoWaysDictionary = self.presets.thresh_ct
+        self.threshold_range: str = ""
 
-        self.raycasting_preset = ""
+        self.raycasting_preset: str = ""
 
         # Image fiducials for navigation
-        self.image_fiducials = np.full([3, 3], np.nan)
+        self.image_fiducials: NDArray = np.full([3, 3], np.nan)
 
         # self.surface_quality_list = ["Low", "Medium", "High", "Optimal *",
         #                             "Custom"i]
@@ -134,20 +137,20 @@ class Project(metaclass=Singleton):
                 new_index += 1
         self.mask_dict = new_dict
 
-    def GetMask(self, index):
+    def GetMask(self, index: int) -> "Mask":
         return self.mask_dict[index]
 
-    def AddSurface(self, surface):
+    def AddSurface(self, surface: "Surface") -> int:
         # self.last_surface_index = surface.index
         index = len(self.surface_dict)
         self.surface_dict[index] = surface
         return index
 
-    def ChangeSurface(self, surface):
+    def ChangeSurface(self, surface: "Surface") -> None:
         index = surface.index
         self.surface_dict[index] = surface
 
-    def RemoveSurface(self, index):
+    def RemoveSurface(self, index: int) -> None:
         new_dict = {}
         for i in self.surface_dict:
             if i < index:
@@ -157,17 +160,17 @@ class Project(metaclass=Singleton):
                 new_dict[i - 1].index = i - 1
         self.surface_dict = new_dict
 
-    def AddMeasurement(self, measurement):
+    def AddMeasurement(self, measurement: "Measurement") -> int:
         index = len(self.measurement_dict)
         measurement.index = index
         self.measurement_dict[index] = measurement
         return index
 
-    def ChangeMeasurement(self, measurement):
+    def ChangeMeasurement(self, measurement: "Measurement") -> None:
         index = measurement.index
         self.measurement_dict[index] = measurement
 
-    def RemoveMeasurement(self, index):
+    def RemoveMeasurement(self, index: int) -> None:
         new_dict = {}
         for i in self.measurement_dict:
             if i < index:
@@ -177,7 +180,7 @@ class Project(metaclass=Singleton):
                 new_dict[i - 1].index = i - 1
         self.measurement_dict = new_dict
 
-    def SetAcquisitionModality(self, type_=None):
+    def SetAcquisitionModality(self, type_: Union[None, str] = None) -> None:
         if type_ is None:
             type_ = self.modality
 
@@ -195,7 +198,7 @@ class Project(metaclass=Singleton):
             preset = plistlib.load(f, fmt=plistlib.FMT_XML)
         Publisher.sendMessage("Set raycasting preset", preset)
 
-    def GetMeasuresDict(self):
+    def GetMeasuresDict(self) -> Dict[str, object]:
         measures = {}
         d = self.measurement_dict
         for i in d:
@@ -203,7 +206,12 @@ class Project(metaclass=Singleton):
             measures[str(m.index)] = m.get_as_dict()
         return measures
 
-    def SavePlistProject(self, dir_, filename, compress=False):
+    def SavePlistProject(
+        self,
+        dir_: Union[str, os.PathLike],
+        filename: Union[str, os.PathLike],
+        compress: bool = False,
+    ) -> None:
         dir_temp = decode(tempfile.mkdtemp(), const.FS_ENCODE)
 
         self.compress = compress
@@ -282,7 +290,7 @@ class Project(metaclass=Singleton):
             if filelist[f].endswith(".plist"):
                 os.remove(f)
 
-    def OpenPlistProject(self, filename):
+    def OpenPlistProject(self, filename: Union[str, os.PathLike]) -> None:
         if not const.VTK_WARNING:
             log_path = os.path.join(inv_paths.USER_LOG_DIR, "vtkoutput.txt")
             fow = vtkFileOutputWindow()
@@ -294,7 +302,7 @@ class Project(metaclass=Singleton):
         dirpath = os.path.abspath(os.path.split(filelist[0])[0])
         self.load_from_folder(dirpath)
 
-    def load_from_folder(self, dirpath):
+    def load_from_folder(self, dirpath: str) -> None:
         """
         Loads invesalius3 project files from dipath.
         """
@@ -414,13 +422,15 @@ class Project(metaclass=Singleton):
         with open(path, "w+b") as f:
             plistlib.dump(project, f)
 
-    def export_project(self, filename, save_masks=True):
+    def export_project(self, filename: str, save_masks: bool = True) -> None:
         if filename.lower().endswith(".hdf5") or filename.lower().endswith(".h5"):
             self.export_project_to_hdf5(filename, save_masks)
         elif filename.lower().endswith(".nii") or filename.lower().endswith(".nii.gz"):
             self.export_project_to_nifti(filename, save_masks)
 
-    def export_project_to_hdf5(self, filename, save_masks=True):
+    def export_project_to_hdf5(
+        self, filename: Union[str, os.PathLike], save_masks: bool = True
+    ) -> None:
         import h5py
 
         import invesalius.data.slice_ as slc
@@ -454,7 +464,7 @@ class Project(metaclass=Singleton):
                     f[key + "/visible"] = mask.is_shown
                     f[key + "/edited"] = mask.was_edited
 
-    def export_project_to_nifti(self, filename, save_masks=True):
+    def export_project_to_nifti(self, filename: str, save_masks: bool = True) -> None:
         import nibabel as nib
 
         import invesalius.data.slice_ as slc
@@ -528,7 +538,7 @@ def custom_tar_filter(file: tarfile.TarInfo, path: Union[str, os.PathLike]):
     return file
 
 
-def Extract(filename: Union[str, bytes, os.PathLike], folder: Union[str, bytes, os.PathLike]):
+def Extract(filename: Union[str, bytes, os.PathLike], folder: str):
     if _has_win32api:
         folder = win32api.GetShortPathName(folder)
     folder = decode(folder, const.FS_ENCODE)
