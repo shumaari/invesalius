@@ -1,5 +1,11 @@
 import random
 import time
+from typing import TYPE_CHECKING, List
+
+from numpy.typing import NDArray
+
+if TYPE_CHECKING:
+    from invesalius.data.markers.marker import Marker, MarkerType
 
 import numpy as np
 import pandas as pd
@@ -9,7 +15,7 @@ import invesalius.data.coregistration as dcr
 
 
 class mTMS:
-    def __init__(self):
+    def __init__(self) -> None:
         # TODO: create dialog to input mtms_path and vi
         mtms_path = "C:\\mTMS\\Labview\\Builds\\mTMS 3.1 hack"
         vipath = (
@@ -28,7 +34,11 @@ class mTMS:
             [], columns=["mTMS_target", "brain_target(nav)", "coil_pose(nav)", "intensity"]
         )
 
-    def CheckTargets(self, coil_pose, brain_target_list):
+    def CheckTargets(
+        self,
+        coil_pose: "Marker"[MarkerType.COIL_POSE],
+        brain_target_list: List["Marker"[MarkerType.BRAIN_TARGET]],
+    ) -> bool:
         for brain_target in brain_target_list:
             distance = dcr.ComputeRelativeDistanceToTarget(
                 target_coord=brain_target, img_coord=coil_pose
@@ -40,7 +50,11 @@ class mTMS:
                 return False
         return True
 
-    def UpdateTargetSequence(self, coil_pose, brain_target_list):
+    def UpdateTargetSequence(
+        self,
+        coil_pose: "Marker"[MarkerType.COIL_POSE],
+        brain_target_list: List["Marker"[MarkerType.BRAIN_TARGET]],
+    ) -> None:
         if brain_target_list:
             # Do I really need to check this? Or I can apply only the possible stimuli?
             if self.CheckTargets(coil_pose, brain_target_list):
@@ -53,7 +67,11 @@ class mTMS:
                         time.sleep(random.randrange(300, 500, 1) / 100)
                 self.SaveSequence()
 
-    def UpdateTarget(self, coil_pose, brain_target):
+    def UpdateTarget(
+        self,
+        coil_pose: "Marker"[MarkerType.COIL_POSE],
+        brain_target: "Marker"[MarkerType.BRAIN_TARGET],
+    ) -> None:
         coil_pose_flip = coil_pose.copy()
         brain_target_flip = brain_target.copy()
         coil_pose_flip[1] = -coil_pose_flip[1]
@@ -75,13 +93,13 @@ class mTMS:
         else:
             print("Target is not valid. The offset is: ", offset)
 
-    def GetOffset(self, distance):
+    def GetOffset(self, distance: List[float]) -> List[int]:
         offset_xy = [int(np.round(x)) for x in distance[:2]]
         offset_rz = int(np.round(distance[-1] / 15) * 15)
         offset = [-int(offset_xy[1]), int(offset_xy[0]), int(offset_rz)]
         return offset
 
-    def FindmTMSParameters(self, offset):
+    def FindmTMSParameters(self, offset: List[int]) -> tuple[str, NDArray[int]]:
         # fname = "C:\\mTMS\\mTMS parameters\\PP\\PP31 mikael 1mm 15deg 5-coil grid.txt"
         fname = self.vi.GetControlValue("Get Pulse-parameters file")
         with open(fname) as the_file:
@@ -95,7 +113,7 @@ class mTMS:
 
         return target, target_index
 
-    def SendToMTMS(self, target):
+    def SendToMTMS(self, target: str) -> None:
         # Manipulate intensity
         self.intensity = self.vi.GetControlValue("Get Intensity")
         print("Intensity: ", str(self.intensity))
@@ -117,7 +135,7 @@ class mTMS:
         print("Stimulating")
         self.vi.SetControlValue("Stimulate", True)
 
-    def SaveSequence(self):
+    def SaveSequence(self) -> None:
         timestamp = time.localtime(time.time())
         stamp_date = f"{timestamp.tm_year:0>4d}{timestamp.tm_mon:0>2d}{timestamp.tm_mday:0>2d}"
         stamp_time = f"{timestamp.tm_hour:0>2d}{timestamp.tm_min:0>2d}{timestamp.tm_sec:0>2d}"
