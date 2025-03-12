@@ -21,7 +21,7 @@ jobs:
         run: |
           sudo apt-get update
           #sudo apt-get install -y freeglut3 freeglut3-dev libgl1-mesa-dev libglu1-mesa-dev libgstreamer-plugins-base1.0-dev libgtk-3-dev libjpeg-dev libnotify-dev libsdl2-dev libsm-dev libtiff-dev libwebkit2gtk-4.0-dev libxtst-dev python3-dev libhdf5-dev build-essential python3-venv
-          sudo apt install python3-wxgtk4.0 python3-numpy python3-scipy python3-pil python3-matplotlib python3-skimage python3-nibabel python3-serial python3-psutil python3-vtk7 python3-vtkgdcm python3-gdcm cython3 python3-h5py python3-imageio python3-keras python3-pubsub
+          sudo apt-get install python3-wxgtk4.0 python3-numpy python3-scipy python3-pil python3-matplotlib python3-skimage python3-nibabel python3-serial python3-psutil python3-vtk7 python3-vtkgdcm python3-gdcm cython3 python3-h5py python3-imageio python3-keras python3-pubsub
           pip3 install plaidml-keras
           pip install -r requirements1.txt
       - name: Install invesalius
