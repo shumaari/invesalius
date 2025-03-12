@@ -17,14 +17,34 @@ jobs:
       - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
         with:
           python-version: 3.9
-      #- name: Install requirements
-      #  run: |
-      #    pip install -r requirements1.txt
-      #- name: Install invesalius
-      #  run: |
-      #    pip install -e .
+      - name: Install requirements
+        run: |
+          sudo apt install -y \
+              freeglut3 \
+              freeglut3-dev \
+              libgl1-mesa-dev \
+              libglu1-mesa-dev \
+              libgstreamer-plugins-base1.0-dev \
+              libgtk-3-dev \
+              libjpeg-dev \
+              libnotify-dev \
+              libsdl2-dev \
+              libsm-dev \
+              libtiff-dev \
+              libwebkit2gtk-4.0-dev \
+              libxtst-dev \
+              python3-dev \
+              libhdf5-dev \
+              build-essential \
+              python3-venv
+          pip install -r requirements1.txt
+      - name: Install invesalius
+        run: |
+          #pip install -e .
+          python3 setup.py build_ext --inplace
       - name: Install mypy
         run: pip install mypy==1.9.0
       - name: Run mypy
         run: |
-          mypy ./ --install-types --non-interactive
+          mypy --install-types --non-interactive
+          #mypy ./ --install-types --non-interactive
