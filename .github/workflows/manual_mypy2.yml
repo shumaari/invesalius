@@ -35,4 +35,5 @@ jobs:
       - name: Run mypy
         run: |
           #mypy --install-types --non-interactive --config-file pyproject.toml
-          mypy
+          #mypy
+          mypy .
