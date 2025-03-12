@@ -34,4 +34,5 @@ jobs:
         run: pip install mypy==1.9.0
       - name: Run mypy
         run: |
-          mypy --install-types --non-interactive --config-file pyproject.toml
+          #mypy --install-types --non-interactive --config-file pyproject.toml
+          mypy
