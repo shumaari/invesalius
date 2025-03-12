@@ -31,7 +31,7 @@ jobs:
           #pip install -e .
           python3 setup.py build_ext --inplace
       - name: Install mypy
-        run: pip install mypy==1.9.0
+        run: pip install mypy
       - name: Run mypy
         run: |
           mypy --install-types --non-interactive
